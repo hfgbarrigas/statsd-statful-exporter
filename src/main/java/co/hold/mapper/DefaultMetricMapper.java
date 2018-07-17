@@ -114,7 +114,7 @@ public class DefaultMetricMapper implements MetricMapper<DefaultEvent> {
                 for (String component : filteredComponents) {
                     switch (component.charAt(0)) {
                         case '@':
-                            if (!"c".equals(statType) && !"ms".equals(statType)) { //for now we only support timers and counter
+                            if (Arrays.stream(MetricType.values()).noneMatch(mt -> mt.getType().equals(statType))) {
 
                                 events.add(this.buildEvent(GAUGE_METRIC_TYPE, METADATA_ERRORS,
                                         1f, DEFAULT_SAMPLE_RATE,

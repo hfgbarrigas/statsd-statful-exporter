@@ -27,9 +27,8 @@ public class StatfulSender implements MetricsSender<DefaultEvent> {
         return Mono.create(sink -> events.forEach(event -> {
             switch (event.getType()) {
                 case COUNTER:
-                    statfulClient.sampledCounter(event.getMetricName(), Math.round(event.getValue()))
+                    statfulClient.sampledCounter(event.getMetricName(), Math.round(event.getValue()), Math.round(event.getSampleRate() * 100))
                             .with()
-                            .sampleRate(Math.round(event.getSampleRate() * 100))
                             .tags(toTags(event.getTags()))
                             .send();
                     break;
