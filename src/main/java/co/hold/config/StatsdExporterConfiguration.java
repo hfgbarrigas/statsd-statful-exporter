@@ -35,7 +35,7 @@ public class StatsdExporterConfiguration {
 
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
-    public static StatsdExporterConfiguration loadConfiguration() throws IOException {
+    public static StatsdExporterConfiguration loadConfiguration(final String path) throws IOException {
         return YAML_MAPPER.readValue(Paths.get(System.getProperty("configurationPath")).toFile(), StatsdExporterConfiguration.class);
     }
 

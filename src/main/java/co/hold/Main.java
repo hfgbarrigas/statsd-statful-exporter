@@ -24,7 +24,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         //block until we read the configuration
         //TODO: Validate configuration
-        final StatsdExporterConfiguration appConfig = StatsdExporterConfiguration.loadConfiguration();
+        final StatsdExporterConfiguration appConfig = StatsdExporterConfiguration.loadConfiguration(System.getProperty("configurationPath"));
 
         appConfig.setEnvironment(Optional.ofNullable(System.getProperty("environment")).orElse(appConfig.getEnvironment()));
 
