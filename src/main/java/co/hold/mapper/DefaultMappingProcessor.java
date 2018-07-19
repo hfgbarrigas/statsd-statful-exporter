@@ -3,14 +3,10 @@ package co.hold.mapper;
 import co.hold.config.Mapping;
 import co.hold.domain.DefaultEvent;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toMap;
+import java.util.stream.Collectors;
 
 public class DefaultMappingProcessor implements MappingProcessor<DefaultEvent> {
 
@@ -47,38 +43,54 @@ public class DefaultMappingProcessor implements MappingProcessor<DefaultEvent> {
 
     /**
      * extract tags given a specific mapping and a corresponding metric.
-     *
+     * <p>
      * e.g:
      * mapping match -> test.dispatcher.*.*.*
      * mapping tags -> label:$1, label2: $2, label3: $3
      * metric -> test.dispatcher.FooProcessor.send.success
-     *
+     * <p>
      * resulting tags -> label:FooProcessor, label2:send, label3: success
      *
      * @param metric - metric name
-     * @param m - mapping
+     * @param m      - mapping
      * @return tags extracted
      */
     private Map<String, String> tags(final String metric, final Mapping m) {
         Objects.requireNonNull(m);
         Objects.requireNonNull(m.getMatch());
         Objects.requireNonNull(metric);
-
+        // refactor :)
         Map<String, String> tags = new HashMap<>();
+
         String[] globedData = m.getMatch().split("\\.");
         String[] metricData = metric.split("\\.");
 
-        IntStream.range(0, globedData.length)
-                .forEach(i -> {
-                    if ("*".equals(globedData[i]) && i < metricData.length) {
-                        tags.putAll(m.getTags()
-                                .entrySet()
-                                .stream()
-                                .filter(es -> es.getValue().contains("$" + i) || es.getKey().contains("$" + i))
-                                .collect(toMap(es -> es.getKey().replace("$" + i, metricData[i]),
-                                        es -> es.getValue().replace("$" + i, metricData[i]))));
+        List<Map.Entry<String, String>> list = Optional.ofNullable(m.getTags())
+                .map(x -> m.getTags().entrySet()
+                        .stream()
+                        .filter(es -> es.getValue().contains("$") || es.getKey().contains("$"))
+                        .collect(Collectors.toList()))
+                .orElse(new ArrayList<>());
+
+        if (!list.isEmpty()) {
+
+            for (int i = 0, j = 0; i < globedData.length; i++) {
+                Matcher matcher = Pattern.compile(".*?\\*.*?").matcher(globedData[i]);
+                if (matcher.matches() && i < metricData.length) {
+                    Map.Entry<String, String> es = list.get(j);
+
+                    //remove non-wildcard parts we're not interested in
+                    for (String part : globedData[i].split("\\*")){
+                        metricData[i] = metricData[i].replace(part, "");
                     }
-                });
+
+                    tags.put(es.getKey().replaceFirst("\\$.", metricData[i]),
+                            es.getValue().replaceFirst("\\$.", metricData[i]));
+                    j++;
+                }
+            }
+
+        }
 
         return tags;
     }

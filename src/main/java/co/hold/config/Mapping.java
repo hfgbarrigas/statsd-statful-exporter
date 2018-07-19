@@ -1,6 +1,5 @@
 package co.hold.config;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,6 +8,7 @@ import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -26,7 +26,6 @@ public class Mapping {
             this.name = name;
         }
 
-        @JsonCreator
         public static Action fromValue(String value) {
             return Arrays.stream(values())
                     .filter(v -> v.name.equals(value))
@@ -39,13 +38,12 @@ public class Mapping {
         }
     }
 
-    @JsonProperty(required = true)
+    @JsonProperty
     private String match;
-    @JsonProperty(required = true)
+    @JsonProperty
     private String name;
     @JsonProperty
     private Map<String, String> tags;
-    @JsonProperty(defaultValue = "match", required = true)
+    @JsonProperty
     private Action action;
-
 }

@@ -14,6 +14,8 @@ import lombok.ToString;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static co.hold.util.Constants.ENVIRONMENT;
 
@@ -36,7 +38,17 @@ public class StatsdExporterConfiguration {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     public static StatsdExporterConfiguration loadConfiguration(final String path) throws IOException {
-        return YAML_MAPPER.readValue(Paths.get(System.getProperty("configurationPath")).toFile(), StatsdExporterConfiguration.class);
+        StatsdExporterConfiguration statsdExporterConfiguration = YAML_MAPPER
+                .readValue(Paths.get(path).toFile(), StatsdExporterConfiguration.class);
+
+        statsdExporterConfiguration.getMappingsList()
+                .forEach(m -> {
+                    Objects.requireNonNull(m.getMatch());
+                    Objects.requireNonNull(m.getName());
+                    m.setAction(Optional.ofNullable(m.getAction()).orElse(Mapping.Action.MATCH));
+                });
+
+        return statsdExporterConfiguration;
     }
 
     public StatfulClient getStatfulClient() {
