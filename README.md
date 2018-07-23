@@ -11,6 +11,8 @@ Inspired on: https://github.com/prometheus/statsd_exporter
     |  StatsD  |---(UDP/TCP repeater)--->|  statsd_exporter  |--(UDP relay metrics)-->|  Relay       |
     +----------+                         +-------------------+                        +--------------+
 
+Refer to Envoy metric documentation to make sense of the example below [Envoy Metrics](https://www.envoyproxy.io/docs/envoy/latest/configuration/cluster_manager/cluster_stats)
+
 Configuration
 =============
 An example configuration file
@@ -21,38 +23,6 @@ An example configuration file
       port: 8125
       host: 127.0.0.1
     mappings:
-      - match: envoy.cluster.*.upstream_rq_*
-        name: "http.requests.upstream"
-        tags:
-        upstream: "$1"
-        status_code: "$2"
-      - match: envoy.cluster.*.upstream_rq_time
-        name: "http.requests.upstream"
-        tags:
-          upstream: "$1"
-      - match: envoy.cluster.*.external.upstream_rq_*
-        name: "http.external.requests.upstream"
-        tags:
-          upstream: "$1"
-          status_code: "$2"
-      - match: envoy.cluster.*.external.upstream_rq_time
-        name: "http.external.requests.upstream"
-        tags:
-          upstream: "$1"
-      - match: envoy.cluster.*.internal.upstream_rq_*
-        name: "http.internal.requests.upstream"
-        tags:
-          upstream: "$1"
-          status_code: "$2"
-      - match: envoy.cluster.*.internal.upstream_rq_time
-        name: "http.internal.requests.upstream"
-        tags:
-          upstream: "$1"
-      - match: envoy.cluster.*.canary.upstream_rq_*
-        name: "http.canary.requests.upstream"
-        tags:
-          upstream: "$1"
-          status_code: "$2"
       - match: envoy.cluster.*.canary.upstream_rq_time
         name: "http.canary.requests.upstream"
         tags:
@@ -97,6 +67,38 @@ An example configuration file
         name: "total_http2_requests"
         tags:
           upstream: "$1"
+      - match: envoy.cluster.*.upstream_rq_time
+        name: "http.requests.upstream"
+        tags:
+          upstream: "$1"
+      - match: envoy.cluster.*.external.upstream_rq_time
+        name: "http.external.requests.upstream"
+        tags:
+          upstream: "$1"
+      - match: envoy.cluster.*.internal.upstream_rq_time
+        name: "http.internal.requests.upstream"
+        tags:
+          upstream: "$1"
+      - match: envoy.cluster.*.upstream_rq_*
+        name: "http.requests.upstream"
+        tags:
+          upstream: "$1"
+          status_code: "$2"
+      - match: envoy.cluster.*.external.upstream_rq_*
+        name: "http.external.requests.upstream"
+        tags:
+          upstream: "$1"
+          status_code: "$2"
+      - match: envoy.cluster.*.internal.upstream_rq_*
+        name: "http.internal.requests.upstream"
+        tags:
+          upstream: "$1"
+          status_code: "$2"
+      - match: envoy.cluster.*.canary.upstream_rq_*
+        name: "http.canary.requests.upstream"
+        tags:
+          upstream: "$1"
+          status_code: "$2"
     statful:
       flushInterval: 5000
       flushSize: 10
@@ -107,6 +109,21 @@ An example configuration file
       namespace: statsdexporter
       environment: local
 
+Mappings match incoming metrics. They are applied sequentially and stop when a match is found.
+Wildcards represent any character when matching. $X tags are replaced with the value of the wildcard.
+Multiple wildcards in the same name is supported.
+
+e.g: 
+
+    - match: envoy.cluster.*.upstream_rq_*
+      name: "http.requests.upstream"
+      tags:
+        upstream: "$1"
+        status_code: "$2"
+    
+    for metric: envoy.cluster.cluster_hold_auth.upstream_rq_2xx:1|c
+    
+    will yield
 
 Build
 =====
