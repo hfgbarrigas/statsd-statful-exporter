@@ -83,7 +83,7 @@ An example configuration file
         name: "http.requests.upstream"
         tags:
           upstream: "$3"
-          status_code: "$5"
+          status_code: "$4"
       - match: envoy.cluster.*.external.upstream_rq_[0-9]+(xx)?
         name: "http.external.requests.upstream"
         tags:
@@ -119,7 +119,7 @@ e.g:
       name: "http.requests.upstream"
       tags:
         upstream: "$3"
-        status_code: "$5"
+        status_code: "$4"
     
     for metric: envoy.cluster.cluster_hold_auth.upstream_rq_2xx
     
