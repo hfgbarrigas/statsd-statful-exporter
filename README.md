@@ -110,7 +110,7 @@ An example configuration file
       environment: local
 
 Mappings match incoming metrics. They are applied sequentially and stop when a match is found.
-Match can be viewed as a regex that will be applied to an incoming metric, where wildcard `*` is replaced by `.+`  
+Match can be viewed as a regex that will be applied to an incoming metric, where wildcard `*` is replaced by `[a-zA-Z_]+`  
 When a match occurs, the metric will then be split by `.` and $X will get the value associated with the according position.
 
 e.g: 
