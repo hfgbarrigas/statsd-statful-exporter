@@ -26,79 +26,79 @@ An example configuration file
       - match: envoy.cluster.*.canary.upstream_rq_time
         name: "http.canary.requests.upstream"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_rq_active
         name: "active_requests"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_rq_pending_active
         name: "pending_active_requests"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_rq_pending_total
         name: "pending_total_requests"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_cx_active
         name: "active_connections"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.membership_healthy
         name: "membership_healthy"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.membership_total
         name: "membership_total"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_rq_timeout
         name: "requests_timeout"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_rq_total
         name: "requests_total"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_cx_http1_total
         name: "total_http1_requests"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_cx_http2_total
         name: "total_http2_requests"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.upstream_rq_time
         name: "http.requests.upstream"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.external.upstream_rq_time
         name: "http.external.requests.upstream"
         tags:
-          upstream: "$1"
+          upstream: "$3"
       - match: envoy.cluster.*.internal.upstream_rq_time
         name: "http.internal.requests.upstream"
         tags:
-          upstream: "$1"
-      - match: envoy.cluster.*.upstream_rq_*
+          upstream: "$3"
+      - match: envoy.cluster.*.upstream_rq_[0-9]+(xx)?
         name: "http.requests.upstream"
         tags:
-          upstream: "$1"
-          status_code: "$2"
-      - match: envoy.cluster.*.external.upstream_rq_*
+          upstream: "$3"
+          status_code: "$5"
+      - match: envoy.cluster.*.external.upstream_rq_[0-9]+(xx)?
         name: "http.external.requests.upstream"
         tags:
-          upstream: "$1"
-          status_code: "$2"
-      - match: envoy.cluster.*.internal.upstream_rq_*
+          upstream: "$3"
+          status_code: "$5"
+      - match: envoy.cluster.*.internal.upstream_rq_[0-9]+(xx)?
         name: "http.internal.requests.upstream"
         tags:
-          upstream: "$1"
-          status_code: "$2"
-      - match: envoy.cluster.*.canary.upstream_rq_*
+          upstream: "$3"
+          status_code: "$5"
+      - match: envoy.cluster.*.canary.upstream_rq_[0-9]+(xx)?
         name: "http.canary.requests.upstream"
         tags:
-          upstream: "$1"
-          status_code: "$2"
+          upstream: "$3"
+          status_code: "$5"
     statful:
       flushInterval: 5000
       flushSize: 10
@@ -110,20 +110,28 @@ An example configuration file
       environment: local
 
 Mappings match incoming metrics. They are applied sequentially and stop when a match is found.
-Wildcards represent any character when matching. $X tags are replaced with the value of the wildcard.
-Multiple wildcards in the same name is supported.
+Match can be viewed as a regex that will be applied to an incoming metric, where wildcard `*` is replaced by `.+`  
+When a match occurs, the metric will then be split by `.` and $X will get the value associated with the according position.
 
 e.g: 
 
-    - match: envoy.cluster.*.upstream_rq_*
+    - match: envoy.cluster.*.upstream_rq_[0-9]+(xx)?
       name: "http.requests.upstream"
       tags:
-        upstream: "$1"
-        status_code: "$2"
+        upstream: "$3"
+        status_code: "$5"
     
-    for metric: envoy.cluster.cluster_hold_auth.upstream_rq_2xx:1|c
+    for metric: envoy.cluster.cluster_hold_auth.upstream_rq_2xx
     
-    will yield
+    will yield the following metric:
+    
+    metric: http.requests.upstream
+    tags:
+      upstream: "cluster_hold_auth"
+      status_code: "upstream_rq_2xx"
+
+NOTE: Be careful with regex that match more specific matches. Since its a first match found within the mappings list,
+you should put more generic mappings at the bottom of the list.
 
 Build
 =====

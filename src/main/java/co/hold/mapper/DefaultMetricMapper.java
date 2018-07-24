@@ -41,7 +41,7 @@ public class DefaultMetricMapper implements MetricMapper<DefaultEvent> {
 
         try {
             return StreamSupport.stream(metricLines.spliterator(), false)
-                    .filter(mappingProcessor::processable)
+                    .filter(ml -> mappingProcessor.processable(this.validLine(ml)[0]))
                     .map(line -> this.processLine(line, new ArrayList<>()))
                     .map(evs -> evs.stream().map(mappingProcessor::process)
                             .collect(toList()))
@@ -114,7 +114,7 @@ public class DefaultMetricMapper implements MetricMapper<DefaultEvent> {
                 for (String component : filteredComponents) {
                     switch (component.charAt(0)) {
                         case '@':
-                            if (Arrays.stream(MetricType.values()).noneMatch(mt -> mt.getType().equals(statType))) {
+                            if (Arrays.stream(MetricType.values()).noneMatch(mt -> mt.getType().equals(statType))) { //for now we only support timers and counter
 
                                 events.add(this.buildEvent(GAUGE_METRIC_TYPE, METADATA_ERRORS,
                                         1f, DEFAULT_SAMPLE_RATE,

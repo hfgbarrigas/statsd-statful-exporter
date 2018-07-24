@@ -4,7 +4,6 @@ import co.hold.config.Mapping;
 import co.hold.domain.DefaultEvent;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -59,10 +58,8 @@ public class DefaultMappingProcessor implements MappingProcessor<DefaultEvent> {
         Objects.requireNonNull(m);
         Objects.requireNonNull(m.getMatch());
         Objects.requireNonNull(metric);
-        // refactor :)
-        Map<String, String> tags = new HashMap<>();
 
-        String[] globedData = m.getMatch().split("\\.");
+        Map<String, String> tags = new HashMap<>();
         String[] metricData = metric.split("\\.");
 
         List<Map.Entry<String, String>> list = Optional.ofNullable(m.getTags())
@@ -72,24 +69,25 @@ public class DefaultMappingProcessor implements MappingProcessor<DefaultEvent> {
                         .collect(Collectors.toList()))
                 .orElse(new ArrayList<>());
 
-        if (!list.isEmpty()) {
 
-            for (int i = 0, j = 0; i < globedData.length; i++) {
-                Matcher matcher = Pattern.compile(".*?\\*.*?").matcher(globedData[i]);
-                if (matcher.matches() && i < metricData.length) {
-                    Map.Entry<String, String> es = list.get(j);
+        for (final Map.Entry<String, String> tag : list) {
 
-                    //remove non-wildcard parts we're not interested in
-                    for (String part : globedData[i].split("\\*")){
-                        metricData[i] = metricData[i].replace(part, "");
-                    }
+            String key = tag.getKey();
+            String value = tag.getValue();
 
-                    tags.put(es.getKey().replaceFirst("\\$.", metricData[i]),
-                            es.getValue().replaceFirst("\\$.", metricData[i]));
-                    j++;
-                }
+            if (key.contains("$")) {
+                final Integer index = Integer.valueOf(key.replace("$", ""));
+                final String dataValue = metricData[index - 1];
+                key = key.replaceFirst("\\$.", dataValue);
             }
 
+            if (value.contains("$")) {
+                final Integer index = Integer.valueOf(value.replace("$", ""));
+                final String dataValue = metricData[index - 1];
+                value = value.replaceFirst("\\$.", dataValue);
+            }
+
+            tags.put(key, value);
         }
 
         return tags;
