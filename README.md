@@ -2,8 +2,8 @@ Statsd metric exporter
 ======================
 
 Reactor Netty based application that listens to metrics over tcp and udp and sends transformed metrics via UDP.
-Main goal is to map satsd metric format into [Statful](https://www.statful.com/) format. The implementation allows customization of senders as well
-as metric receivers.
+Main goal is to map satsd metric format into [Statful](https://www.statful.com/) format. The implementation allows customization of metric senders, mappers and receivers. Meaning that,
+you can easily create a new sender other than statful, by implementing MetricsSender. Check StatfulSender for an example.
 
 Inspired on: https://github.com/prometheus/statsd_exporter
 
